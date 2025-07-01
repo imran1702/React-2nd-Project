@@ -1,20 +1,32 @@
-import { useContext } from 'react'
+import { useContext, useState } from 'react'
 import Header from '../Header'
 import Menu from '../Menu'
 import { Col, Container, Row } from 'react-bootstrap'
 import banner from "../../assets/tv-offer-web-banner-982x500.webp"
 import jonCareer from "../../assets/job-career-2024.webp"
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ApiData } from './ContextApi'
+import { useDispatch, useSelector } from 'react-redux'
+import { decrement, increment } from '../slices/countSlice'
 
-function Home() {
+function Home({product}) {
   let data = useContext(ApiData)
-  console.log(data)
+  let disPatch = useDispatch()
+  let [showCartQnty, setShowCartQnty] = useState(false)
+  let cartItems = useSelector((state)=> state.cartItemCount.value)
+  let navigate = useNavigate()
+
+  const handleProductDetailPage = ()=>{
+    navigate (`/product/${product.id}`)
+  }
+
+  const handleAddCart = () => {
+    disPatch(increment());
+    setShowCartQnty(true);
+  };
   
   return (
     <>
-    <Header></Header>
-    <Menu></Menu>
     <section id='home'>
         <div className="banner">
           <Container>
@@ -54,16 +66,22 @@ function Home() {
             <Row className='text-center g-3'>
               {data.map((item)=>( 
                 <Col lg={4}>
-                  <Link to="/ProductDetails.jsx" style={{textDecoration: "none"}}>
-                    <div className="proCard" style={{boxShadow: "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)", padding: "10px"}}>
+                    <div onClick={handleProductDetailPage} className="proCard" style={{position:"relative", boxShadow: "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)", padding: "10px"}}>
                       <>
+                  {/* <Link to="/ProductDetails.jsx" style={{textDecoration: "none"}}> */}
+                      <small style={{color: "red", position:"absolute", top:"15px", left:"5px", transform:"rotate(-45deg)"}}>{item.availabilityStatus}</small>
                       <img src={item.thumbnail} alt="" />
                       <h4>{item.title}</h4>
-                      <strong>{item.price}</strong>
-                      {console.log(item)}
+                      <strong style={{display: "block"}}>Price: {item.price} BDT</strong>
+                  {/* </Link> */}
+                      <button onClick={handleAddCart}>Add Cart</button>
+                      <div className="cartQnty" style={{display: showCartQnty ? 'block' : 'none'}}>
+                        <button onClick={cartItems > 0 ? ()=>disPatch(decrement()) : "" }>-</button>
+                        <h4 className='mx-3' style={{display:"inline-block"}}>{cartItems}</h4>
+                        <button onClick={()=>disPatch(increment())}>+</button>
+                      </div>
                       </>
                     </div>
-                  </Link>
                 </Col>
               ))}
             </Row>
